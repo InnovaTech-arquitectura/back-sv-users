@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Custom;
 using DTO;
 
-[Route("/user")]
+[Route("api/[controller]")]
 [AllowAnonymous]
 [ApiController]
 public class UsersController : ControllerBase
@@ -17,6 +17,10 @@ public class UsersController : ControllerBase
     private readonly DatabaseContext _context;
     private readonly Utilities _utilities;
     private readonly EmailService _emailService;
+
+    private static string _recoveryCode;
+    private static string _recoveryEmail;
+
 
     public UsersController(DatabaseContext context, Utilities utilities, EmailService emailService)
     {
@@ -69,9 +73,6 @@ public class UsersController : ControllerBase
 
     [HttpPost]
     [Route("Login")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(object))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(string))]
     public async Task<IActionResult> Login([FromBody] LoginDTO user)
     {
         if (user == null)
@@ -79,61 +80,26 @@ public class UsersController : ControllerBase
             return BadRequest("User data is required.");
         }
 
-        try
-        {
-            var userFind = await _context.Users
-                .Where(u =>
-                    u.Email == user.Email &&
-                    u.Password == _utilities.encriptarSHA256(user.Password)
-                ).FirstOrDefaultAsync();
+        var userFind = await _context.Users
+            .Where(u =>
+                u.Email == user.Email &&
+                u.Password == _utilities.encriptarSHA256(user.Password)
+            ).FirstOrDefaultAsync();
 
-            if (userFind == null)
-            {
-                return NotFound("Wrong username or password");
-            }
-            else
-            {
-                var token = _utilities.generateJWT(userFind);
-                return Ok(new
-                {
-                    message = "user logged in successfully",
-                    token = token,
-                    userId = userFind.Id
-                });
-            }
-        }
-        catch (Exception ex)
+        if (userFind == null)
         {
-            Console.WriteLine($"Internal server error: {ex.Message}");
-            return StatusCode(500, "internal server error");
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = false, token = "" });
+        }
+        else
+        {
+            var token = _utilities.generateJWT(userFind);
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token = token });
         }
     }
 
-    [HttpPost("password")]
-    public IActionResult ChangePassword([FromBody] PasswordChangeDTO model)
-    {
-        // Find user by email
-        var user = _context.Users.FirstOrDefault(u => u.Email == model.Email);
-        if (user == null)
-        {
-            return NotFound("User not found.");
-        }
 
-        // Verify old password
-        if (user.Password != _utilities.encriptarSHA256(model.OldPassword))
-        {
-            return BadRequest("Old password is incorrect.");
-        }
 
-        // Update password
-        user.Password = _utilities.encriptarSHA256(model.NewPassword);
-        _context.SaveChanges();
 
-        // Send confirmation email
-        _emailService.SendPasswordChangedConfirmation(user.Email);
-
-        return Ok("Password updated successfully.");
-    }
 
 
     [HttpGet]
@@ -146,6 +112,66 @@ public class UsersController : ControllerBase
 
         return Ok(users);
     }
+
+
+
+    [HttpPost]
+    [Route("request-password-recovery")]
+    public async Task<IActionResult> RequestPasswordRecovery([FromBody] PasswordRecoveryEmailDTO model)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        // Genera un código aleatorio
+        _recoveryCode = Guid.NewGuid().ToString().Substring(0, 6);
+        _recoveryEmail = model.Email; // Almacena el correo para el siguiente paso
+
+        // Envía el código por correo
+        await _emailService.SendRecoveryCode(user.Email, _recoveryCode);
+
+        return Ok("Recovery code sent to email.");
+    }
+
+    [HttpPost("verify-code")]
+    public IActionResult VerifyRecoveryCode([FromBody] PasswordRecoveryCodeDTO model)
+    {
+        if (model.Code != _recoveryCode)
+        {
+            return BadRequest("Invalid recovery code.");
+        }
+
+        return Ok("Code verified. Proceed to set a new password.");
+    }
+
+    [HttpPost("set-new-password")]
+    public IActionResult SetNewPassword([FromBody] PasswordChangeDTO model)
+    {
+        // Verificar si las contraseñas coinciden
+        if (model.NewPassword != model.ConfirmNewPassword)
+        {
+            return BadRequest("Passwords do not match.");
+        }
+
+        // Obtener el usuario por correo
+        var user = _context.Users.FirstOrDefault(u => u.Email == _recoveryEmail);
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        // Actualizar la contraseña
+        user.Password = _utilities.encriptarSHA256(model.NewPassword);
+        _context.SaveChanges();
+
+        // Enviar un correo de confirmación de que la contraseña ha sido cambiada
+        _emailService.SendPasswordChangedConfirmation(user.Email);
+
+        return Ok("Password updated successfully.");
+    }
+
 
     [HttpPost]
     public IActionResult AddUser()
