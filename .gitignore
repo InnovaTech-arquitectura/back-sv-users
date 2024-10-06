@@ -363,5 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 
 bin/
-back-SV-users/bin/
 net8.0/
+obj/
