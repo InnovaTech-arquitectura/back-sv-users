@@ -11,14 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Configura el logging para capturar mensajes detallados
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-builder.Logging.AddDebug();  // Añade el log de depuración
+builder.Logging.AddDebug();  // Aï¿½ade el log de depuraciï¿½n
 
 builder.Host.ConfigureLogging(logging =>
 {
     logging.ClearProviders();
     logging.AddConsole();
     logging.AddDebug();
-    logging.SetMinimumLevel(LogLevel.Debug);  // Ajusta el nivel mínimo de logs a Debug para más detalles
+    logging.SetMinimumLevel(LogLevel.Debug);  // Ajusta el nivel mï¿½nimo de logs a Debug para mï¿½s detalles
 });
 
 // Add services to the container.
@@ -41,9 +41,7 @@ builder.Services.AddCors(options =>
 });
 
 // Get connection string from configuration file
-var connectionString = builder.Configuration
-    .GetConnectionString("ConnectionString")
-    ?? throw new ArgumentNullException("No connection string found");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Print the connection string to verify that it is being read correctly.
 Console.WriteLine($"Connection String: {connectionString}");
@@ -66,7 +64,7 @@ if (string.IsNullOrEmpty(key))
     throw new Exception("JWT Key is not set correctly in the configuration.");
 }
 
-// Si los problemas persisten, comenta la configuración de autenticación JWT para reducir la complejidad temporalmente
+// Si los problemas persisten, comenta la configuraciï¿½n de autenticaciï¿½n JWT para reducir la complejidad temporalmente
 builder.Services.AddAuthentication(config =>
 {
     config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   app:
     image: back-sv-users:latest
@@ -10,3 +8,5 @@ services:
       - "5293:5293"  # Redirigir el puerto 80 del contenedor al 8080 del host
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    env_file:
+      - .env
