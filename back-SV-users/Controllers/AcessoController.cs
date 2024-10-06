@@ -122,7 +122,7 @@ public class UsersController : ControllerBase
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
         if (user == null)
         {
-            return NotFound("User not found.");
+            return NotFound(new { message = "User not found." });
         }
 
         // Genera un código aleatorio
@@ -132,18 +132,19 @@ public class UsersController : ControllerBase
         // Envía el código por correo
         await _emailService.SendRecoveryCode(user.Email, _recoveryCode);
 
-        return Ok("Recovery code sent to email.");
+        return Ok(new { message = "Recovery code sent to email." }); // Return a JSON object
     }
+
 
     [HttpPost("verify-code")]
     public IActionResult VerifyRecoveryCode([FromBody] PasswordRecoveryCodeDTO model)
     {
         if (model.Code != _recoveryCode)
         {
-            return BadRequest("Invalid recovery code.");
+            return BadRequest(new { message = "Invalid recovery code." });
         }
 
-        return Ok("Code verified. Proceed to set a new password.");
+        return Ok(new { message = "Code verified. Proceed to set a new password." });
     }
 
     [HttpPost("set-new-password")]
@@ -152,14 +153,14 @@ public class UsersController : ControllerBase
         // Verificar si las contraseñas coinciden
         if (model.NewPassword != model.ConfirmNewPassword)
         {
-            return BadRequest("Passwords do not match.");
+            return BadRequest(new { message = "Passwords do not match." });
         }
 
         // Obtener el usuario por correo
         var user = _context.Users.FirstOrDefault(u => u.Email == _recoveryEmail);
         if (user == null)
         {
-            return NotFound("User not found.");
+            return NotFound(new { message = "User not found." });
         }
 
         // Actualizar la contraseña
@@ -169,7 +170,7 @@ public class UsersController : ControllerBase
         // Enviar un correo de confirmación de que la contraseña ha sido cambiada
         _emailService.SendPasswordChangedConfirmation(user.Email);
 
-        return Ok("Password updated successfully.");
+        return Ok(new { message = "Password updated successfully." });
     }
 
 
