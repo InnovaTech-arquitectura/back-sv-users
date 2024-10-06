@@ -11,14 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Configura el logging para capturar mensajes detallados
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-builder.Logging.AddDebug();  // Añade el log de depuración
+builder.Logging.AddDebug();  // AÃ±ade el log de depuraciÃ³n
 
 builder.Host.ConfigureLogging(logging =>
 {
     logging.ClearProviders();
     logging.AddConsole();
     logging.AddDebug();
-    logging.SetMinimumLevel(LogLevel.Debug);  // Ajusta el nivel mínimo de logs a Debug para más detalles
+    logging.SetMinimumLevel(LogLevel.Debug);  // Ajusta el nivel mÃ­nimo de logs a Debug para mÃ¡s detalles
 });
 
 // Add services to the container.
@@ -66,7 +66,7 @@ if (string.IsNullOrEmpty(key))
     throw new Exception("JWT Key is not set correctly in the configuration.");
 }
 
-// Si los problemas persisten, comenta la configuración de autenticación JWT para reducir la complejidad temporalmente
+// Configurar autenticaciÃ³n JWT
 builder.Services.AddAuthentication(config =>
 {
     config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -87,6 +87,13 @@ builder.Services.AddAuthentication(config =>
 });
 
 var app = builder.Build();
+
+// Aplicar migraciones automÃ¡ticamente
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+    dbContext.Database.Migrate();  // Aplica migraciones al inicio
+}
 
 // Configure the HTTP request handling pipeline.
 if (app.Environment.IsDevelopment())
