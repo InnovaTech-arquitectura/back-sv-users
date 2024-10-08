@@ -1,0 +1,12 @@
+services:
+  app:
+    image: back-sv-users:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5293:5293"  # Redirigir el puerto 80 del contenedor al 8080 del host
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    env_file:
+      - .env
