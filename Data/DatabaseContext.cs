@@ -16,7 +16,7 @@ namespace back_SV_users.Data
         {
             modelBuilder.Entity<User>(entity =>
             {
-                entity.ToTable("user", schema: "innovatech");
+                entity.ToTable("user_entity", schema: "public");
                 entity.Property(u => u.Name)
                       .IsRequired() 
                       .HasMaxLength(100);
@@ -29,12 +29,13 @@ namespace back_SV_users.Data
                       .IsRequired();
 
                 entity.Property(u => u.RoleId)
+                .HasColumnName("role_id")
                       .IsRequired();
             });
 
-            modelBuilder.Entity<Role>().ToTable("role", schema: "innovatech");
-            modelBuilder.Entity<Client>().ToTable("client", schema: "innovatech");
-            modelBuilder.Entity<Entrepreneurship>().ToTable("entrepreneurship", schema: "innovatech");
+            modelBuilder.Entity<Role>().ToTable("role", schema: "public");
+            modelBuilder.Entity<Client>().ToTable("client", schema: "public");
+            modelBuilder.Entity<Entrepreneurship>().ToTable("entrepreneurship", schema: "public");
         }
 
     }

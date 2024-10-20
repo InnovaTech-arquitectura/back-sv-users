@@ -6,18 +6,18 @@ WORKDIR /app
 COPY *.csproj ./
 RUN dotnet restore
 
-# Copia todo el contenido del proyecto
+# Copia todo el contenido del proyecto y compila
 COPY . ./
-
-# Publica la aplicación en un directorio "out"
 RUN dotnet publish -c Release -o out
 
 # Usa una imagen más ligera de .NET 8 para ejecutar la aplicación
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build-env /app/out .
 
-# Expone el puerto en el que la aplicación correrá (ajustar si es necesario)
+# Exponer puertos (ajusta según sea necesario)
+EXPOSE 80
+EXPOSE 443
 EXPOSE 5293
 
 # Define el comando que se ejecutará cuando el contenedor inicie
