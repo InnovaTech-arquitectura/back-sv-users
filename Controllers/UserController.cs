@@ -1,0 +1,147 @@
+
+
+using back_SV_users.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+[Route("api/account")]
+[AllowAnonymous]
+[ApiController]
+public class UserController : ControllerBase
+{
+
+    private readonly DatabaseContext _context;
+
+     private readonly AccountService _accountService;
+
+    public UserController(DatabaseContext context, AccountService accountService)
+    {
+        _context = context;
+        _accountService = accountService;
+    }
+
+    [HttpGet ("client/{id}")]
+    public async Task<IActionResult> GetAccountCli(int id)
+    {
+       // Obtener el usuario asociado al ID del cliente
+        var user = await _context.Users.FindAsync(id);
+
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        // Devolver el objeto User
+        return Ok(user);
+    }
+    
+    [HttpGet ("entrepreneurship/{id}")]
+    public async Task<IActionResult> GetAccountEnt(int id)
+    {
+        // Obtener el usuario basado en el ID
+        var user = await _context.Users.FindAsync(id);
+
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        //obtneder el emprendimiento buscando por el id del usuario
+       var entrepreneurship = await _context.Entrepreneurships
+                                         .FirstOrDefaultAsync(e => e.Id_user == user.Id);
+
+        //var entrepreneurship = user.Entrepreneurship;
+
+        if (entrepreneurship == null)
+        {
+            return NotFound("Entrepreneurship not found.");
+        }
+
+        var entrepreneurshipInfoDto = new EntrepreneurshipAccountInfoDTO
+        {
+            NameTitular = user.Name,
+            Id_card = user.Id_card,
+            email = user.Email,
+            NameEntrepreneurship = entrepreneurship.Name,
+            Description = entrepreneurship.Description,
+            Logo=[]
+        };
+
+        // Devolver el DTO
+        return Ok(entrepreneurshipInfoDto);
+    }
+
+    [HttpPost ("client/{id}")]
+    public async Task<IActionResult> PostAccountCli(int id, [FromBody] ClientAccount account)
+    {
+        // Obtener el usuario basado en el ID
+        var user = await _context.Users.FindAsync(id);
+
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        // Actualizar los datos del usuario
+        user.Name = account.Name;
+        user.Email = account.Email;
+        user.Id_card = account.Id_card;
+
+        // Guardar los cambios en la base de datos
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+
+        return Ok(user);
+    }
+
+    [HttpPost ("entrepreneurship/{id}")]
+    public async Task<IActionResult> PostAccountEnt(int id, [FromBody] EntrepreneurshipAccountDTO account)
+    {
+        //actualizar user con los datos enviados
+       //obtener user del id enviado
+       //actalizarlo y guardarlo 
+       var user = await _context.Users.FindAsync(id);
+
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+
+        user.Name = account.NameTitular;
+        user.Email = account.email;
+        user.Id_card = account.Id_card;
+
+
+       //obtener entrepreneurship del id del emprendedor que se obtuvo del user
+       //actalizarlo y guardarlo
+
+        var entrepreneurship = await _context.Entrepreneurships
+                                         .FirstOrDefaultAsync(e => e.Id_user == user.Id);
+
+
+
+        if (entrepreneurship != null)
+        {
+            // Actualizar el emprendimiento
+            entrepreneurship.Name = account.NameEntrepreneurship;
+            entrepreneurship.Description = account.Description;
+            
+            _context.Entrepreneurships.Update(entrepreneurship);
+        }
+        else
+        {
+            return NotFound("Entrepreneurship not found.");
+        }
+
+        // Guardar los cambios en la base de datos
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { User = user, Entrepreneurship = entrepreneurship });
+    }
+
+
+}
+

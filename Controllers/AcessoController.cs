@@ -97,11 +97,6 @@ public class UsersController : ControllerBase
         }
     }
 
-
-
-
-
-
     [HttpGet]
     public IActionResult GetUsers()
     {
