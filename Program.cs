@@ -4,8 +4,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Custom;
+using Minio;
 using Models;
 using back_SV_users.Data;
+using YourNamespace.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,19 @@ builder.Host.ConfigureLogging(logging =>
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// En Program.cs o Startup.cs
+builder.Services.AddSingleton<IMinioClient>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    return new MinioClient()
+        .WithCredentials(config["Minio:AccessKey"], config["Minio:SecretKey"])
+        .WithEndpoint(config["Minio:Url"])
+        .Build();
+});
+
+builder.Services.AddScoped<MinioService>();
+
 
 // Configuración de Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();

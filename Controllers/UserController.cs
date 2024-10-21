@@ -4,6 +4,7 @@ using back_SV_users.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using YourNamespace.Services;
 
 [Route("api/account")]
 [AllowAnonymous]
@@ -13,12 +14,15 @@ public class UserController : ControllerBase
 
     private readonly DatabaseContext _context;
 
-     private readonly AccountService _accountService;
+    private readonly AccountService _accountService;
 
-    public UserController(DatabaseContext context, AccountService accountService)
+    private readonly MinioService _minioService;
+
+    public UserController(DatabaseContext context, AccountService accountService,MinioService minioService)
     {
         _context = context;
         _accountService = accountService;
+        _minioService = minioService;
     }
 
     [HttpGet ("client/{id}")]
@@ -58,6 +62,16 @@ public class UserController : ControllerBase
             return NotFound("Entrepreneurship not found.");
         }
 
+        //obtenerfoto de minio
+        var logoStream = await _minioService.GetObjectAsync(entrepreneurship.Logo);
+        
+        byte[] logo;
+        using (var memoryStream = new MemoryStream())
+        {
+            await logoStream.CopyToAsync(memoryStream);
+            logo = memoryStream.ToArray();
+        }
+
         var entrepreneurshipInfoDto = new EntrepreneurshipAccountInfoDTO
         {
             NameTitular = user.Name,
@@ -65,7 +79,7 @@ public class UserController : ControllerBase
             email = user.Email,
             NameEntrepreneurship = entrepreneurship.Name,
             Description = entrepreneurship.Description,
-            Logo=[]
+            Logo = logo
         };
 
         // Devolver el DTO
@@ -120,15 +134,16 @@ public class UserController : ControllerBase
         var entrepreneurship = await _context.Entrepreneurships
                                          .FirstOrDefaultAsync(e => e.Id_user == user.Id);
 
-
-
         if (entrepreneurship != null)
         {
             // Actualizar el emprendimiento
             entrepreneurship.Name = account.NameEntrepreneurship;
             entrepreneurship.Description = account.Description;
-            
             _context.Entrepreneurships.Update(entrepreneurship);
+
+            // Subir el logo a Minio
+            //var logoStream = account.Logo.OpenReadStream();
+            await _minioService.UploadFileAsync(entrepreneurship.Logo, account.Logo);
         }
         else
         {
