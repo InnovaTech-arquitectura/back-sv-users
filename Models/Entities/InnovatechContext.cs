@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using back_sv_Users.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace back_sv_users.Models.Entities;
@@ -86,10 +85,6 @@ public partial class InnovatechContext : DbContext
                 .HasColumnType("character varying")
                 .HasColumnName("id_card");
             entity.Property(e => e.IdUser).HasColumnName("id_user");
-
-            entity.HasOne(d => d.IdUserNavigation).WithMany(p => p.Clients)
-                .HasForeignKey(d => d.IdUser)
-                .HasConstraintName("client_id_user_fkey");
         });
 
         modelBuilder.Entity<Coupon>(entity =>
@@ -258,7 +253,6 @@ public partial class InnovatechContext : DbContext
 
             entity.HasOne(d => d.IdEventNavigation).WithMany(p => p.EntrepreneurshipEventRegistries)
                 .HasForeignKey(d => d.IdEvent)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fkrljd4l23e5d5l8h9bt4cj3hl9");
         });
 
@@ -271,8 +265,11 @@ public partial class InnovatechContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CostoLocal).HasColumnName("costo_local");
             entity.Property(e => e.Date)
-                .HasMaxLength(255)
+                .HasColumnType("timestamp(6) without time zone")
                 .HasColumnName("date");
+            entity.Property(e => e.Date2)
+                .HasColumnType("timestamp(6) without time zone")
+                .HasColumnName("date2");
             entity.Property(e => e.Description)
                 .HasMaxLength(255)
                 .HasColumnName("description");
@@ -283,9 +280,7 @@ public partial class InnovatechContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
-            entity.Property(e => e.Place)
-                .HasMaxLength(255)
-                .HasColumnName("place");
+            entity.Property(e => e.Place).HasColumnName("place");
             entity.Property(e => e.Quota).HasColumnName("quota");
             entity.Property(e => e.TotalCost).HasColumnName("total_cost");
         });
@@ -421,6 +416,8 @@ public partial class InnovatechContext : DbContext
 
             entity.HasIndex(e => e.Email, "user_entity_email_key").IsUnique();
 
+            entity.HasIndex(e => e.EntrepreneurshipId, "user_entity_entrepreneurship_id_key").IsUnique();
+
             entity.HasIndex(e => e.IdCard, "user_entity_id_card_key").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("id");
@@ -428,6 +425,7 @@ public partial class InnovatechContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(255)
                 .HasColumnName("email");
+            entity.Property(e => e.EntrepreneurshipId).HasColumnName("entrepreneurship_id");
             entity.Property(e => e.IdCard).HasColumnName("id_card");
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
@@ -440,6 +438,10 @@ public partial class InnovatechContext : DbContext
             entity.HasOne(d => d.AdministrativeEmployeeNavigation).WithOne(p => p.UserEntity)
                 .HasForeignKey<UserEntity>(d => d.AdministrativeEmployeeId)
                 .HasConstraintName("fk7f0g0o0keoihj7qmpxp2blua3");
+
+            entity.HasOne(d => d.Entrepreneurship).WithOne(p => p.UserEntity)
+                .HasForeignKey<UserEntity>(d => d.EntrepreneurshipId)
+                .HasConstraintName("fkb8r80d91aont5jsq1mp7x3fh9");
 
             entity.HasOne(d => d.Role).WithMany(p => p.UserEntities)
                 .HasForeignKey(d => d.RoleId)

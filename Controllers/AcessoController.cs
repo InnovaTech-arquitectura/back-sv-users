@@ -92,10 +92,11 @@ public class UsersController : ControllerBase
         }
         else
         {
-            var token = _utilities.generateJWT(userFind);
+            var token = _utilities.generateJWT(userFind); 
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token = token });
         }
     }
+
 
     [HttpGet]
     public IActionResult GetUsers()

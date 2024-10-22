@@ -13,8 +13,8 @@ namespace back_SV_users
         public int Id { get; set; }
 
         [Required]
-        [ForeignKey("User")]
-        [Column("id_user")] 
+        [ForeignKey("User")] 
+        [Column("user_entity_id")]
         public int Id_user { get; set; }
 
         /*
@@ -27,17 +27,21 @@ namespace back_SV_users
         [Required]
         [Column("name")]
         public required string Name { get; set; }
+        
+        [Required]
+        [Column("names")]
+        public required string Names {get;set;}
+        
+        [Required]
+        [Column("lastnames")]
+        public required string LastNames {get;set;}
 
         [Column("logo")]
-        public required string Logo { get; set; }
-
-        [Required]
-        [Column("nit")]
-        public int NIT { get; set; }
+        public string Logo { get; set; }
 
         [Column("description")]
         public required string Description { get; set; }
 
-        public required User User { get; set; }
+        public User User { get; set; }
     }
 }
