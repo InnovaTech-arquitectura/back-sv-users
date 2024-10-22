@@ -10,6 +10,4 @@ public partial class Client
     public long? IdUser { get; set; }
 
     public string? IdCard { get; set; }
-
-    public virtual User? IdUserNavigation { get; set; }
 }

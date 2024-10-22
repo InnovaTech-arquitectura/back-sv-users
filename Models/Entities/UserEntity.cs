@@ -9,6 +9,8 @@ public partial class UserEntity
 
     public long? AdministrativeEmployeeId { get; set; }
 
+    public long? EntrepreneurshipId { get; set; }
+
     public long Id { get; set; }
 
     public long RoleId { get; set; }
@@ -22,6 +24,8 @@ public partial class UserEntity
     public virtual AdministrativeEmployee? AdministrativeEmployee { get; set; }
 
     public virtual AdministrativeEmployee? AdministrativeEmployeeNavigation { get; set; }
+
+    public virtual Entrepreneurship? Entrepreneurship { get; set; }
 
     public virtual Role Role { get; set; } = null!;
 }
