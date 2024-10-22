@@ -8,6 +8,7 @@ using Minio;
 using Models;
 using back_SV_users.Data;
 using YourNamespace.Services;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
+
+
+// Ajuste para permitir archivos grandes
+builder.Services.Configure<FormOptions>(options =>
+{
+    // Cambia el límite de tamaño según lo necesites. Aquí es 100 MB.
+    options.MultipartBodyLengthLimit = 104857600; // 100 MB
+});
 
 builder.Host.ConfigureLogging(logging =>
 {

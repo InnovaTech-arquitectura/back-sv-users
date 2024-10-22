@@ -14,14 +14,11 @@ public class UserController : ControllerBase
 
     private readonly DatabaseContext _context;
 
-    private readonly AccountService _accountService;
-
     private readonly MinioService _minioService;
 
-    public UserController(DatabaseContext context, AccountService accountService,MinioService minioService)
+    public UserController(DatabaseContext context,MinioService minioService)
     {
         _context = context;
-        _accountService = accountService;
         _minioService = minioService;
     }
 
@@ -63,8 +60,14 @@ public class UserController : ControllerBase
         }
 
         //obtenerfoto de minio
-        var logoStream = await _minioService.GetObjectAsync(entrepreneurship.Logo);
+
+        Console.WriteLine("Logo Stream Content (as text):");
+
         
+        var logoStream = await _minioService.GetObjectAsync("P-"+entrepreneurship.Id);
+
+        //imprimir logoStream
+       
         byte[] logo;
         using (var memoryStream = new MemoryStream())
         {
@@ -74,7 +77,7 @@ public class UserController : ControllerBase
 
         var entrepreneurshipInfoDto = new EntrepreneurshipAccountInfoDTO
         {
-            NameTitular = user.Name,
+            NameTitular =user.Name,
             Id_card = user.Id_card,
             email = user.Email,
             NameEntrepreneurship = entrepreneurship.Name,
@@ -86,7 +89,7 @@ public class UserController : ControllerBase
         return Ok(entrepreneurshipInfoDto);
     }
 
-    [HttpPost ("client/{id}")]
+    [HttpPut ("client/{id}")]
     public async Task<IActionResult> PostAccountCli(int id, [FromBody] ClientAccount account)
     {
         // Obtener el usuario basado en el ID
@@ -109,8 +112,8 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
-    [HttpPost ("entrepreneurship/{id}")]
-    public async Task<IActionResult> PostAccountEnt(int id, [FromBody] EntrepreneurshipAccountDTO account)
+    [HttpPut ("entrepreneurship/{id}")]
+    public async Task<IActionResult> PostAccountEnt(int id, [FromForm] EntrepreneurshipAccountDTO account)
     {
         //actualizar user con los datos enviados
        //obtener user del id enviado
@@ -143,7 +146,7 @@ public class UserController : ControllerBase
 
             // Subir el logo a Minio
             //var logoStream = account.Logo.OpenReadStream();
-            await _minioService.UploadFileAsync(entrepreneurship.Logo, account.Logo);
+            await _minioService.UploadFileAsync("P-"+entrepreneurship.Id, account.Logo);
         }
         else
         {
@@ -155,6 +158,9 @@ public class UserController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { User = user, Entrepreneurship = entrepreneurship });
+        //imprimir account.Logo
+
+       
     }
 
 
