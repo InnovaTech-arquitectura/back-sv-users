@@ -21,6 +21,10 @@ namespace back_SV_users.Data
                       .IsRequired() 
                       .HasMaxLength(100);
 
+                entity.Property(u => u.Id_card)
+                      .HasColumnName("id_card") // Mapeo de la columna
+                      .IsRequired(); // Campo requerido
+
                 entity.Property(u => u.Email)
                       .IsRequired()
                       .HasMaxLength(100);

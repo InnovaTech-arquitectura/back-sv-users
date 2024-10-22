@@ -4,8 +4,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Custom;
+using Minio;
 using Models;
 using back_SV_users.Data;
+using YourNamespace.Services;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
+
+
+// Ajuste para permitir archivos grandes
+builder.Services.Configure<FormOptions>(options =>
+{
+    // Cambia el límite de tamaño según lo necesites. Aquí es 100 MB.
+    options.MultipartBodyLengthLimit = 104857600; // 100 MB
+});
 
 builder.Host.ConfigureLogging(logging =>
 {
@@ -24,6 +35,19 @@ builder.Host.ConfigureLogging(logging =>
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// En Program.cs o Startup.cs
+builder.Services.AddSingleton<IMinioClient>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    return new MinioClient()
+        .WithCredentials(config["Minio:AccessKey"], config["Minio:SecretKey"])
+        .WithEndpoint(config["Minio:Url"])
+        .Build();
+});
+
+builder.Services.AddScoped<MinioService>();
+
 
 // Configuración de Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
