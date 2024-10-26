@@ -12,10 +12,10 @@ namespace back_SV_users
         [Column("id")] 
         public int Id { get; set; }
 
-        [Required]
-        [ForeignKey("User")] 
+        [ForeignKey("User")]
         [Column("user_entity_id")]
-        public int Id_user { get; set; }
+        public int? Id_user { get; set; } // Cambiado a int? para permitir valores nulos
+
 
         /*
         [Required]

@@ -89,8 +89,9 @@ public class UserController : ControllerBase
         return Ok(entrepreneurshipInfoDto);
     }
 
-    [HttpPut ("client/{id}")]
-    public async Task<IActionResult> PostAccountCli(int id, [FromBody] ClientAccount account)
+    //revisando todo esto me di cuenta q pusimos post pero en realidad esto es un pput
+    [HttpPut("client/{id}")]
+    public async Task<IActionResult> PutAccountClient(int id, [FromBody] ClientAccount account)
     {
         // Obtener el usuario basado en el ID
         var user = await _context.Users.FindAsync(id);
@@ -111,6 +112,7 @@ public class UserController : ControllerBase
 
         return Ok(user);
     }
+
 
     [HttpPut ("entrepreneurship/{id}")]
     public async Task<IActionResult> PostAccountEnt(int id, [FromForm] EntrepreneurshipAccountDTO account)
