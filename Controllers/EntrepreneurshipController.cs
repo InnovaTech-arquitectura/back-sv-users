@@ -66,7 +66,8 @@ public class EntrepreneurshipController : ControllerBase
                 Name = user.Name,
                 Names = user.Names,
                 LastNames = user.LastNames,
-                Description = user.Description
+                Description = user.Description,
+                Logo = "null"
             };
 
             await _context.Entrepreneurships.AddAsync(entrepreneurship); // Agregamos el cliente

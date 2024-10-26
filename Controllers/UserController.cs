@@ -131,6 +131,7 @@ public class UserController : ControllerBase
         user.Id_card = account.Id_card;
 
 
+
        //obtener entrepreneurship del id del emprendedor que se obtuvo del user
        //actalizarlo y guardarlo
 
@@ -142,6 +143,7 @@ public class UserController : ControllerBase
             // Actualizar el emprendimiento
             entrepreneurship.Name = account.NameEntrepreneurship;
             entrepreneurship.Description = account.Description;
+            //entrepreneurship.Logo = account.Logo;
             _context.Entrepreneurships.Update(entrepreneurship);
 
             // Subir el logo a Minio

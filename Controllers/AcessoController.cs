@@ -88,12 +88,12 @@ public class UsersController : ControllerBase
 
         if (userFind == null)
         {
-            return StatusCode(StatusCodes.Status200OK, new { isSuccess = false, token = "" });
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = false, token = "", userId = "" });
         }
         else
         {
             var token = _utilities.generateJWT(userFind); 
-            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token = token });
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token = token, userId = userFind.Id });
         }
     }
 
