@@ -9,12 +9,12 @@ namespace back_SV_users
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Column("id")] 
+        [Column("id")]
         public int Id { get; set; }
 
         [Required]
         [ForeignKey("User")]
-        [Column("id_user")] 
+        [Column("id_user")]
         public int Id_user { get; set; }
 
         /*
@@ -39,5 +39,7 @@ namespace back_SV_users
         public required string Description { get; set; }
 
         public required User User { get; set; }
+
+        public List<CouponEntrepreneurship> CouponEntrepreneurships { get; set; } = new List<CouponEntrepreneurship>();
     }
 }

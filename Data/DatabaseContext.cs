@@ -51,13 +51,13 @@ namespace back_SV_users.Data
                 entity.HasKey(ce => ce.Id);
 
                 // Relación con la tabla Coupon
-                entity.HasOne(ce => ce.IdCouponNavigation)
+                entity.HasOne(ce => ce.Coupon) // Cambiado a Coupon
                       .WithMany(c => c.CouponEntrepreneurships)
                       .HasForeignKey(ce => ce.IdCoupon)
                       .OnDelete(DeleteBehavior.Cascade);
 
                 // Relación con la tabla Entrepreneurship
-                entity.HasOne(ce => ce.IdEntrepreneurshipNavigation)
+                entity.HasOne(ce => ce.Entrepreneurship) // Cambiado a Entrepreneurship
                       .WithMany(e => e.CouponEntrepreneurships)
                       .HasForeignKey(ce => ce.IdEntrepreneurship)
                       .OnDelete(DeleteBehavior.Cascade);
