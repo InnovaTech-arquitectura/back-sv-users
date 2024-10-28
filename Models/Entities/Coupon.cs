@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using back_sv_Users.Models.Entities;
 
 namespace back_sv_users.Models.Entities;
 

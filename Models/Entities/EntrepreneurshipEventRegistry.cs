@@ -13,9 +13,9 @@ public partial class EntrepreneurshipEventRegistry
 
     public long? IdEntrepreneurship { get; set; }
 
-    public long IdEvent { get; set; }
+    public long? IdEvent { get; set; }
 
     public virtual Entrepreneurship? IdEntrepreneurshipNavigation { get; set; }
 
-    public virtual Event IdEventNavigation { get; set; } = null!;
+    public virtual Event? IdEventNavigation { get; set; }
 }

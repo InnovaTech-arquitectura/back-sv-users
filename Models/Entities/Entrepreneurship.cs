@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using back_sv_Users.Models.Entities;
 
 namespace back_sv_users.Models.Entities;
 
@@ -27,4 +26,6 @@ public partial class Entrepreneurship
     public virtual ICollection<EntrepreneurshipEventRegistry> EntrepreneurshipEventRegistries { get; set; } = new List<EntrepreneurshipEventRegistry>();
 
     public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
+
+    public virtual UserEntity? UserEntity { get; set; }
 }
