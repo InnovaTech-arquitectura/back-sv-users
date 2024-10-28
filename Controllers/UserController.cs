@@ -50,7 +50,7 @@ public class UserController : ControllerBase
 
         //obtneder el emprendimiento buscando por el id del usuario
        var entrepreneurship = await _context.Entrepreneurships
-                                         .FirstOrDefaultAsync(e => e.Id_user == user.Id);
+                                         .FirstOrDefaultAsync(e => e.UserEntityId == user.Id);
 
         //var entrepreneurship = user.Entrepreneurship;
 
@@ -138,7 +138,7 @@ public class UserController : ControllerBase
        //actalizarlo y guardarlo
 
         var entrepreneurship = await _context.Entrepreneurships
-                                         .FirstOrDefaultAsync(e => e.Id_user == user.Id);
+                                         .FirstOrDefaultAsync(e => e.UserEntityId == user.Id);
 
         if (entrepreneurship != null)
         {

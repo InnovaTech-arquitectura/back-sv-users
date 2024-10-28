@@ -8,12 +8,13 @@ namespace back_SV_users
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Column("id")] 
+        [Column("id")]
         public long Id { get; set; }
 
         [ForeignKey("User")]
         [Column("user_entity_id")]
-        public int? Id_user { get; set; } // Cambiado a int? para permitir valores nulos
+        public int? UserEntityId { get; set; } // Cambiado el nombre para mayor claridad
+
 
 
         /*
@@ -26,22 +27,22 @@ namespace back_SV_users
         [Required]
         [Column("name")]
         public required string Name { get; set; }
-        
+
         [Required]
         [Column("names")]
-        public required string Names {get;set;}
-        
+        public required string Names { get; set; }
+
         [Required]
         [Column("lastnames")]
-        public required string LastNames {get;set;}
+        public required string LastNames { get; set; }
 
         [Column("logo")]
-        public string Logo { get; set; }
+        public string? Logo { get; set; }
 
         [Column("description")]
         public required string Description { get; set; }
 
-        public Models.User User { get; set; }
-        public List<CouponEntrepreneurship> CouponEntrepreneurships { get; set; } = new List<CouponEntrepreneurship>();
+        public Models.User? User { get; set; }
+        public List<CouponEntrepreneurship>? CouponEntrepreneurships { get; set; } = new List<CouponEntrepreneurship>();
     }
 }

@@ -67,7 +67,7 @@ public class EntrepreneurshipController : ControllerBase
             
             var entrepreneurship = new Entrepreneurship
             {
-                Id_user = modelUser.Id,  
+                UserEntityId = modelUser.Id,  
                 Name = user.Name,
                 Names = user.Names,
                 LastNames = user.LastNames,
