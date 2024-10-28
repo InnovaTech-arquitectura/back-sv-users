@@ -7,22 +7,21 @@ namespace back_SV_users
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
+        [Column("id")]
+        public long id { get; set; }
 
-        // Relación con Entrepreneurship
-        [Required]
         [ForeignKey("Entrepreneurship")]
-        public long IdEntrepreneurship { get; set; }
+        [Column("id_entrepreneurship")]
+        public long IdEntrepreneurship { get; set; } // Tipo compatible con el Id de Entrepreneurship
         public Entrepreneurship Entrepreneurship { get; set; }
 
-        // Relación con Coupon
-        [Required]
         [ForeignKey("Coupon")]
+        [Column("id_coupon")]
         public long IdCoupon { get; set; }
         public Coupon Coupon { get; set; }
 
-        // Campo de estado activo
+
         [Column("active")]
-        public bool Active { get; set; } = true; // Valor por defecto true
+        public bool Active { get; set; } = true; // Valor predeterminado
     }
 }

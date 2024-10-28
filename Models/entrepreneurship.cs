@@ -1,7 +1,6 @@
-﻿using Models;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Numerics;
 
 namespace back_SV_users
 {
@@ -10,35 +9,21 @@ namespace back_SV_users
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("id")]
-        public int Id { get; set; }
-
-        [Required]
-        [ForeignKey("User")]
-        [Column("id_user")]
-        public int Id_user { get; set; }
-
-        /*
-        [Required]
-        [ForeignKey("Plan")]
-        [Column("id_plan")] 
-        public int Id_plan { get; set; }
-        */
+        public long Id { get; set; }  // Cambiado de int a long
 
         [Required]
         [Column("name")]
-        public required string Name { get; set; }
+        [MaxLength(255)]
+        public string Name { get; set; }
 
         [Column("logo")]
-        public required string Logo { get; set; }
-
-        [Required]
-        [Column("nit")]
-        public int NIT { get; set; }
+        public string? Logo { get; set; }
 
         [Column("description")]
-        public required string Description { get; set; }
+        public string? Description { get; set; }
 
-        public required User User { get; set; }
+        [Column("user_entity_id")]
+        public long? UserEntityId { get; set; }  // Agregado para mapear el ID de usuario
 
         public List<CouponEntrepreneurship> CouponEntrepreneurships { get; set; } = new List<CouponEntrepreneurship>();
     }
