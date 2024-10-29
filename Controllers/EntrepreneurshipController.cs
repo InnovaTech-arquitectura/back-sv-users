@@ -95,70 +95,108 @@ public class EntrepreneurshipController : ControllerBase
 
     //Cambiar el plan del emprendomineto
     [HttpPost]
-[Route("SelectPlan")]
-public async Task<IActionResult> SelectPlan([FromBody] SelectPlanDTO selection)
-{
-    if (selection == null || selection.Id <= 0 || selection.Id_plan <= 0)
-        return BadRequest("Entrepreneurship ID and Plan ID are required.");
-
-    var entrepreneurship = await _context.Entrepreneurships
-        .Where(e => e.Id == selection.Id)
-        .FirstOrDefaultAsync();
-
-    if (entrepreneurship == null)
-        return BadRequest("Entrepreneurship does not exist.");
-
-    var plan = await _context.Plans.FindAsync((long)selection.Id_plan);
-    if (plan == null)
-        return BadRequest("Plan does not exist.");
-
-    // Buscar la suscripción existente para este entrepreneurship_id
-    var subscription = await _context.Subscriptions
-        .Where(s => s.EntrepreneurshipId == selection.Id)
-        .FirstOrDefaultAsync();
-
-    if (subscription != null)
+    [Route("SelectPlan")]
+    public async Task<IActionResult> SelectPlan([FromBody] SelectPlanDTO selection)
     {
-        // Si ya existe una suscripción, actualizamos el id_plan y otros detalles
-        subscription.IdPlan = selection.Id_plan;
-        subscription.Amount = plan.Price;
-        subscription.InitialDate = DateOnly.FromDateTime(DateTime.UtcNow);
-        subscription.ExpirationDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1));
-    }
-    else
-    {
-        // Si no existe una suscripción, se crea una nueva (esto es opcional y depende de la lógica de negocio)
-        subscription = new Subscription
+        if (selection == null || selection.Id <= 0 || selection.Id_plan <= 0)
+            return BadRequest("Entrepreneurship ID and Plan ID are required.");
+
+        var entrepreneurship = await _context.Entrepreneurships
+            .Where(e => e.Id == selection.Id)
+            .FirstOrDefaultAsync();
+
+        if (entrepreneurship == null)
+            return BadRequest("Entrepreneurship does not exist.");
+
+        var plan = await _context.Plans.FindAsync((long)selection.Id_plan);
+        if (plan == null)
+            return BadRequest("Plan does not exist.");
+
+        // Buscar la suscripción existente para este entrepreneurship_id
+        var subscription = await _context.Subscriptions
+            .Where(s => s.EntrepreneurshipId == selection.Id)
+            .FirstOrDefaultAsync();
+
+        if (subscription != null)
         {
-            EntrepreneurshipId = selection.Id,
-            IdPlan = selection.Id_plan,
-            Amount = plan.Price,
-            InitialDate = DateOnly.FromDateTime(DateTime.UtcNow),
-            ExpirationDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1))
+            // Si ya existe una suscripción, actualizamos el id_plan y otros detalles
+            subscription.IdPlan = selection.Id_plan;
+            subscription.Amount = plan.Price;
+            subscription.InitialDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            subscription.ExpirationDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1));
+        }
+        else
+        {
+            // Si no existe una suscripción, se crea una nueva (esto es opcional y depende de la lógica de negocio)
+            subscription = new Subscription
+            {
+                EntrepreneurshipId = selection.Id,
+                IdPlan = selection.Id_plan,
+                Amount = plan.Price,
+                InitialDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                ExpirationDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1))
+            };
+
+            await _context.Subscriptions.AddAsync(subscription);
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Ok(new { isSuccess = true, SubscriptionId = subscription.Id });
+        }
+        catch (DbUpdateException dbEx)
+        {
+            Console.WriteLine($"Database Update Error: {dbEx.InnerException?.Message}");
+            return StatusCode(500, $"Database Update Error: {dbEx.InnerException?.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Internal server error: {ex.Message}");
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
+    [HttpGet]
+    [Route("plans")]
+    public async Task<IActionResult> GetPlans()
+    {
+        var plans = await _context.Plans.ToListAsync();
+        return Ok(plans);
+    }
+
+    [HttpGet]
+    [Route("ActivePlan/{entrepreneurshipId}")]
+    public async Task<IActionResult> GetActivePlan(int entrepreneurshipId)
+    {
+        var subscription = await _context.Subscriptions
+            .Where(s => s.EntrepreneurshipId == entrepreneurshipId && s.ExpirationDate > DateOnly.FromDateTime(DateTime.UtcNow))
+            .FirstOrDefaultAsync();
+
+        if (subscription == null)
+            return NotFound("No active plan found for this entrepreneurship.");
+
+        // Cargar el plan utilizando el IdPlan de la suscripción
+        var plan = await _context.Plans.FindAsync(subscription.IdPlan);
+        if (plan == null)
+            return NotFound("Plan associated with the subscription not found.");
+
+        var result = new
+        {
+            SubscriptionId = subscription.Id,
+            Amount = subscription.Amount,
+            InitialDate = subscription.InitialDate,
+            ExpirationDate = subscription.ExpirationDate,
+            Plan = new
+            {
+                PlanId = plan.Id,
+                PlanName = plan.Name,
+                PlanPrice = plan.Price
+            }
         };
 
-        await _context.Subscriptions.AddAsync(subscription);
+        return Ok(result);
     }
-
-    try
-    {
-        await _context.SaveChangesAsync();
-        return Ok(new { isSuccess = true, SubscriptionId = subscription.Id });
-    }
-    catch (DbUpdateException dbEx)
-    {
-        Console.WriteLine($"Database Update Error: {dbEx.InnerException?.Message}");
-        return StatusCode(500, $"Database Update Error: {dbEx.InnerException?.Message}");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Internal server error: {ex.Message}");
-        return StatusCode(500, $"Internal server error: {ex.Message}");
-    }
-}
-
-
-
 
 
     
