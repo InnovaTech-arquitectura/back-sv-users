@@ -23,8 +23,8 @@ public class EntrepreneurshipController : ControllerBase
     private readonly Utilities _utilities;
     private readonly EmailService _emailService;
 
-    private static string _recoveryCode;
-    private static string _recoveryEmail;
+    private static string? _recoveryCode;
+    private static string? _recoveryEmail;
 
 
     public EntrepreneurshipController(DatabaseContext context, Utilities utilities, EmailService emailService)
@@ -54,7 +54,7 @@ public class EntrepreneurshipController : ControllerBase
             Id_card = user.Id_card,
             Name = user.Name,
             Email = user.Email,
-            Password = _utilities.encriptarSHA256(user.Password),
+            Password = _utilities.ComputeSHA256Hash(user.Password),
             RoleId = role.Id
         };
     

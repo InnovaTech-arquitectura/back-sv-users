@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Models;
-using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace Custom
 {
@@ -17,42 +17,37 @@ namespace Custom
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public string encriptarSHA256(string texto)
+        public string ComputeSHA256Hash(string text)
         {
-            using (SHA256 sha256Hash = SHA256.Create())
+            using (SHA256 sha256 = SHA256.Create())
             {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(texto));
-
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-
-                return builder.ToString();
+                byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(text));
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
             }
         }
 
-        public string generateJWT(User user)
+        public string GenerateJWT(User user)
         {
             var userClaims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email!)
-            };
+        new Claim(JwtRegisteredClaimNames.Sub, "innovatech"), // Cambiado para coincidir con el consumidor
+        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:key"]!));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var jwtConfig = new JwtSecurityToken(
+            var token = new JwtSecurityToken(
+                issuer: _configuration["JWT:Issuer"],
+                audience: _configuration["JWT:Audience"],
                 claims: userClaims,
                 expires: DateTime.Now.AddMinutes(10),
                 signingCredentials: credentials
-                );
+            );
 
-            return new JwtSecurityTokenHandler().WriteToken(jwtConfig);
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
 
     }
 }
