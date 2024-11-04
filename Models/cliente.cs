@@ -13,7 +13,7 @@ namespace back_SV_users
 
         [Required]
         [ForeignKey("User")] 
-        [Column("id_user")]
+        [Column("id_user_entity")]
         public int Id_user { get; set; }
 
         [Required]
