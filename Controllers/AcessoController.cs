@@ -84,7 +84,7 @@ public class UsersController : ControllerBase
         var userFind = await _context.Users
             .Where(u =>
                 u.Email == user.Email &&
-                u.Password == _utilities.ComputeSHA256Hash(user.Password) // Cambiado aquí
+                u.Password == _utilities.ComputeSHA256Hash(user.Password)
             ).FirstOrDefaultAsync();
 
         if (userFind == null)
@@ -95,8 +95,9 @@ public class UsersController : ControllerBase
         {
             var token = _utilities.GenerateJWT(userFind); 
             _logger.LogInformation($"User {userFind.Name} logged in.");
+            _logger.LogInformation($"role: {userFind.RoleId}");
             _logger.LogInformation($"Token: {token}");
-            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token = token, userId = userFind.Id });
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token = token, userId = userFind.Id , role = userFind.RoleId});
         }
     }
 

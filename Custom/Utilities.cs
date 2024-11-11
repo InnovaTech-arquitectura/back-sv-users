@@ -42,7 +42,7 @@ namespace Custom
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["JWT:Audience"],
                 claims: userClaims,
-                expires: DateTime.Now.AddMinutes(10),
+                expires: DateTime.Now.AddMinutes(1440),
                 signingCredentials: credentials
             );
 
