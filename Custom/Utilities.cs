@@ -22,7 +22,7 @@ namespace Custom
             using (SHA256 sha256 = SHA256.Create())
             {
                 byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(text));
-                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                return Convert.ToBase64String(hashBytes); // Usar Base64 en lugar de hexadecimal
             }
         }
 
@@ -42,7 +42,7 @@ namespace Custom
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["JWT:Audience"],
                 claims: userClaims,
-                expires: DateTime.Now.AddMinutes(1440),
+                expires: DateTime.Now.AddMinutes(40),
                 signingCredentials: credentials
             );
 

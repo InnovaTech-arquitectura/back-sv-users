@@ -35,62 +35,83 @@ public class EntrepreneurshipController : ControllerBase
     }
 
     [HttpPost]
-    [Route("Register")]
-    public async Task<IActionResult> Register([FromBody] RegisterEntrepreneurshipDTO user)
+[Route("Register")]
+public async Task<IActionResult> Register([FromBody] RegisterEntrepreneurshipDTO user)
+{
+    if (user == null)
     {
-        if (user == null)
-        {
-            return BadRequest("User data is required.");
-        }
-
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == user.RoleName);
-        if (role == null)
-        {
-            return BadRequest("Role does not exist.");
-        }
-
-        var modelUser = new User
-        {
-            Id_card = user.Id_card,
-            Name = user.Name,
-            Email = user.Email,
-            Password = _utilities.ComputeSHA256Hash(user.Password),
-            RoleId = role.Id
-        };
-    
-        try
-        {
-            // Agregamos primero el usuario
-            await _context.Users.AddAsync(modelUser);
-            await _context.SaveChangesAsync(); // Guardamos para obtener el ID del usuario creado
-
-            
-            var entrepreneurship = new Entrepreneurship
-            {
-                UserEntityId = modelUser.Id,  
-                Name = user.Name,
-                Names = user.Names,
-                LastNames = user.LastNames,
-                Description = user.Description,
-                Logo = "null"
-            };
-
-            await _context.Entrepreneurships.AddAsync(entrepreneurship); // Agregamos el cliente
-            await _context.SaveChangesAsync(); // Guardamos los cambios
-
-            return Ok(new { isSuccess = true, UserId = modelUser.Id, EntrepreneurshipId = entrepreneurship.Id });
-        }
-        catch (DbUpdateException dbEx)
-        {
-            Console.WriteLine($"Database Update Error: {dbEx.InnerException?.Message}");
-            return StatusCode(500, $"Database Update Error: {dbEx.InnerException?.Message}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Internal server error: {ex.Message}");
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
+        return BadRequest("User data is required.");
     }
+
+    var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == user.RoleName);
+    if (role == null)
+    {
+        return BadRequest("Role does not exist.");
+    }
+
+    var modelUser = new User
+    {
+        Id_card = user.Id_card,
+        Name = user.Name,
+        Email = user.Email,
+        Password = _utilities.ComputeSHA256Hash(user.Password),
+        RoleId = role.Id
+    };
+    
+    try
+    {
+        // Agregar primero el usuario
+        await _context.Users.AddAsync(modelUser);
+        await _context.SaveChangesAsync(); // Guardar para obtener el ID del usuario creado
+
+        // Crear el emprendimiento (entrepreneurship) vinculado al usuario
+        var entrepreneurship = new Entrepreneurship
+        {
+            UserEntityId = modelUser.Id,
+            Name = user.Name,
+            Names = user.Names,
+            LastNames = user.LastNames,
+            Description = user.Description,
+            Logo = "null"
+        };
+
+        await _context.Entrepreneurships.AddAsync(entrepreneurship);
+        await _context.SaveChangesAsync(); // Guardar para obtener el ID del entrepreneurship
+
+        // Crear la suscripción con el Plan 1
+        var plan1 = await _context.Plans.FindAsync((long)1); // Convertir 1 a long
+ // Suponiendo que el ID del Plan 1 es 1
+        if (plan1 == null)
+        {
+            return BadRequest("Default Plan (Plan 1) does not exist.");
+        }
+
+        var subscription = new Subscription
+        {
+            EntrepreneurshipId = entrepreneurship.Id,
+            IdPlan = plan1.Id,
+            Amount = plan1.Price,
+            InitialDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            ExpirationDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1))
+        };
+
+        await _context.Subscriptions.AddAsync(subscription);
+        await _context.SaveChangesAsync(); // Guardar los cambios
+
+        return Ok(new { isSuccess = true, UserId = modelUser.Id, EntrepreneurshipId = entrepreneurship.Id, SubscriptionId = subscription.Id });
+    }
+    catch (DbUpdateException dbEx)
+    {
+        Console.WriteLine($"Database Update Error: {dbEx.InnerException?.Message}");
+        return StatusCode(500, $"Database Update Error: {dbEx.InnerException?.Message}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Internal server error: {ex.Message}");
+        return StatusCode(500, $"Internal server error: {ex.Message}");
+    }
+}
+
 
 
     //Cambiar el plan del emprendomineto

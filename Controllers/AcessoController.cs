@@ -76,6 +76,9 @@ public class UsersController : ControllerBase
     [Route("Login")]
     public async Task<IActionResult> Login([FromBody] LoginDTO user)
     {
+        _logger.LogInformation("Login attempt");
+        _logger.LogInformation($"User: {user.Email}");
+        _logger.LogInformation($"Password: {user.Password}");
         if (user == null)
         {
             return BadRequest("User data is required.");
