@@ -4,6 +4,8 @@ public class EntrepreneurshipAccountInfoDTO
     public required int Id_card { get; set; }
     public required string email { get; set; }
     public required string NameEntrepreneurship { get; set; }
+
+    public required long idEntrepreneurship { get; set; }
     
     // El logo se devuelve como un arreglo de bytes
     public required byte[] Logo { get; set; }

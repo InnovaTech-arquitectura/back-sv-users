@@ -82,7 +82,8 @@ public class UserController : ControllerBase
             email = user.Email,
             NameEntrepreneurship = entrepreneurship.Name,
             Description = entrepreneurship.Description,
-            Logo = logo
+            Logo = logo,
+            idEntrepreneurship = entrepreneurship.Id
         };
 
         // Devolver el DTO
