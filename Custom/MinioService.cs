@@ -30,34 +30,42 @@ namespace YourNamespace.Services
             }
         }
 
- public async Task<Stream> GetObjectAsync(string filename)
+    public async Task<Stream> GetObjectAsync(string filename)
+{
+    await CreateBucketAsync();
+    MemoryStream memoryStream = new MemoryStream();
+    try
     {
-        await CreateBucketAsync();
-        MemoryStream memoryStream = new MemoryStream();
-        try
-        {
-            await _minioClient.GetObjectAsync(new GetObjectArgs()
-                .WithBucket(_bucketName)
-                .WithObject(filename)
-                .WithCallbackStream(stream =>
-                {
-                    stream.CopyTo(memoryStream);
-                }));
-            memoryStream.Seek(0, SeekOrigin.Begin);
-        }
-        catch (Minio.Exceptions.ObjectNotFoundException)
-        {
-            Console.WriteLine($"[MinIO] Object not found: Bucket = {_bucketName}, Filename = {filename}");
-            throw; // Re-lanzar para que sea manejado por el método llamante
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[MinIO] Unexpected error getting object: {ex.Message}");
-            throw;
-        }
+        // Verificar si el objeto existe
+        await _minioClient.StatObjectAsync(new StatObjectArgs()
+            .WithBucket(_bucketName)
+            .WithObject(filename));
 
-        return memoryStream;
+        // Descargar el objeto
+        await _minioClient.GetObjectAsync(new GetObjectArgs()
+            .WithBucket(_bucketName)
+            .WithObject(filename)
+            .WithCallbackStream(stream =>
+            {
+                stream.CopyTo(memoryStream);
+            }));
+
+        memoryStream.Seek(0, SeekOrigin.Begin);
     }
+    catch (Minio.Exceptions.ObjectNotFoundException)
+    {
+        Console.WriteLine($"[MinIO] Object {filename} not found.");
+        throw;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[MinIO] Error: {ex.Message}");
+        throw;
+    }
+
+    return memoryStream;
+}
+
 
 
         // Método para subir un archivo a MinIO

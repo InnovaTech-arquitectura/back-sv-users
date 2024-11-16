@@ -57,7 +57,7 @@ public class UserController : ControllerBase
             return NotFound("Entrepreneurship not found.");
         }
 
-        byte[] logo = null;
+        byte[] logo = Array.Empty<byte>();
         try
         {
             // Obtener foto de Minio
