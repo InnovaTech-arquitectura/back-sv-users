@@ -48,47 +48,50 @@ public class UserController : ControllerBase
             return NotFound("User not found.");
         }
 
-        //obtneder el emprendimiento buscando por el id del usuario
-       var entrepreneurship = await _context.Entrepreneurships
-                                         .FirstOrDefaultAsync(e => e.UserEntityId == user.Id);
-
-        //var entrepreneurship = user.Entrepreneurship;
+        // Obtener el emprendimiento buscando por el id del usuario
+        var entrepreneurship = await _context.Entrepreneurships
+                                            .FirstOrDefaultAsync(e => e.UserEntityId == user.Id);
 
         if (entrepreneurship == null)
         {
             return NotFound("Entrepreneurship not found.");
         }
 
-        //obtenerfoto de minio
-
-        Console.WriteLine("Logo Stream Content (as text):");
-
-        
-        var logoStream = await _minioService.GetObjectAsync("P-"+entrepreneurship.Id);
-
-        //imprimir logoStream
-       
-        byte[] logo;
-        using (var memoryStream = new MemoryStream())
+        byte[] logo = null;
+        try
         {
-            await logoStream.CopyToAsync(memoryStream);
-            logo = memoryStream.ToArray();
+            // Obtener foto de Minio
+            var logoStream = await _minioService.GetObjectAsync("P-" + entrepreneurship.Id);
+
+            // Convertir el stream en un byte array
+            using (var memoryStream = new MemoryStream())
+            {
+                await logoStream.CopyToAsync(memoryStream);
+                logo = memoryStream.ToArray();
+            }
+        }
+        catch (Minio.Exceptions.ObjectNotFoundException)
+        {
+            // Manejar el caso donde el objeto no existe en Minio
+            Console.WriteLine($"Logo not found for P-{entrepreneurship.Id}. Returning empty logo.");
+            logo = Array.Empty<byte>(); // Devuelve un array vacío
         }
 
         var entrepreneurshipInfoDto = new EntrepreneurshipAccountInfoDTO
         {
-            NameTitular =user.Name,
+            NameTitular = user.Name,
             Id_card = user.Id_card,
             email = user.Email,
             NameEntrepreneurship = entrepreneurship.Name,
             Description = entrepreneurship.Description,
-            Logo = logo,
+            Logo = logo, // Aquí puede ser un array vacío o null
             idEntrepreneurship = entrepreneurship.Id
         };
 
         // Devolver el DTO
         return Ok(entrepreneurshipInfoDto);
     }
+
 
     //revisando todo esto me di cuenta q pusimos post pero en realidad esto es un pput
     [HttpPut("client/{id}")]

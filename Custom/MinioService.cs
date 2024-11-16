@@ -30,30 +30,35 @@ namespace YourNamespace.Services
             }
         }
 
-        // Método para obtener un archivo desde MinIO
-        public async Task<Stream> GetObjectAsync(string filename)
+ public async Task<Stream> GetObjectAsync(string filename)
+    {
+        await CreateBucketAsync();
+        MemoryStream memoryStream = new MemoryStream();
+        try
         {
-            await CreateBucketAsync();
-            MemoryStream memoryStream = new MemoryStream();
-            try
-            {
-                await _minioClient.GetObjectAsync(new GetObjectArgs()
-                    .WithBucket(_bucketName)
-                    .WithObject(filename)
-                    .WithCallbackStream(stream =>
-                    {
-                        stream.CopyTo(memoryStream);
-                    }));
-                memoryStream.Seek(0, SeekOrigin.Begin);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[MinIO] Error getting object: {ex.Message}");
-                throw;
-            }
-
-            return memoryStream;
+            await _minioClient.GetObjectAsync(new GetObjectArgs()
+                .WithBucket(_bucketName)
+                .WithObject(filename)
+                .WithCallbackStream(stream =>
+                {
+                    stream.CopyTo(memoryStream);
+                }));
+            memoryStream.Seek(0, SeekOrigin.Begin);
         }
+        catch (Minio.Exceptions.ObjectNotFoundException)
+        {
+            Console.WriteLine($"[MinIO] Object not found: Bucket = {_bucketName}, Filename = {filename}");
+            throw; // Re-lanzar para que sea manejado por el método llamante
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MinIO] Unexpected error getting object: {ex.Message}");
+            throw;
+        }
+
+        return memoryStream;
+    }
+
 
         // Método para subir un archivo a MinIO
         public async Task UploadFileAsync(string filename, IFormFile file)
