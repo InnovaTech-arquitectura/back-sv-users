@@ -66,7 +66,7 @@ namespace back_SV_users.Data
                   modelBuilder.Entity<Plan>().ToTable("plan", "public"); // Nombre y esquema de la tabla correctos
                   modelBuilder.Entity<Subscription>().ToTable("subscription", "public"); // Configura el nombre y el esquema en minúsculas
                   modelBuilder.Entity<Coupon>().ToTable("coupon", schema: "public");
-                  modelBuilder.Entity<CouponFunctionality>().ToTable("coupon_functionality", schema: "public");
+                  
                  
                   
 
@@ -143,6 +143,31 @@ namespace back_SV_users.Data
                 entity.Property(e => e.Description)
                       .HasColumnName("description")
                       .HasMaxLength(255);
+            });
+
+            modelBuilder.Entity<CouponFunctionality>(entity =>
+            {
+                entity.ToTable("coupon_functionality", schema: "public");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.IdCoupon)
+                      .HasColumnName("id_coupon")
+                      .IsRequired();
+
+                entity.Property(e => e.IdFunctionality)
+                      .HasColumnName("id_functionality")
+                      .IsRequired();
+
+                // Relaciones
+                entity.HasOne(e => e.IdCouponNavigation)
+                      .WithMany(c => c.CouponFunctionalities)
+                      .HasForeignKey(e => e.IdCoupon)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.IdFunctionalityNavigation)
+                      .WithMany(f => f.CouponFunctionalities)
+                      .HasForeignKey(e => e.IdFunctionality)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
