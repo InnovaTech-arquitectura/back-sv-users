@@ -20,6 +20,12 @@ namespace back_SV_users.Data
         public DbSet<Coupon> Coupons { get; set; }
         public DbSet<CouponEntrepreneurship> CouponEntrepreneurships { get; set; }  // Agregar la tabla CouponEntrepreneurship
 
+        public DbSet<CouponFunctionality> CouponFunctionalities { get; set; }
+
+      public DbSet<Functionality> Functionalities { get; set; }
+
+      public DbSet<PlanFunctionality> PlanFunctionalities { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -60,6 +66,9 @@ namespace back_SV_users.Data
                   modelBuilder.Entity<Plan>().ToTable("plan", "public"); // Nombre y esquema de la tabla correctos
                   modelBuilder.Entity<Subscription>().ToTable("subscription", "public"); // Configura el nombre y el esquema en minúsculas
                   modelBuilder.Entity<Coupon>().ToTable("coupon", schema: "public");
+                  modelBuilder.Entity<CouponFunctionality>().ToTable("coupon_functionality", schema: "public");
+                 
+                  
 
                   // Configuración de la entidad CouponEntrepreneurship
                   modelBuilder.Entity<CouponEntrepreneurship>(entity =>
@@ -90,7 +99,53 @@ namespace back_SV_users.Data
             .HasForeignKey(ce => ce.IdEntrepreneurship)
             .OnDelete(DeleteBehavior.Cascade);
       });
+         modelBuilder.Entity<PlanFunctionality>(entity =>
+            {
+                entity.ToTable("plan_functionality", schema: "public");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.PlanId)
+                      .HasColumnName("plan_id")
+                      .IsRequired();
+
+                entity.Property(e => e.FunctionalityId)
+                      .HasColumnName("functionality_id")
+                      .IsRequired();
+
+                // Relaciones
+                entity.HasOne(e => e.Plan)
+                      .WithMany(p => p.PlanFunctionalities)
+                      .HasForeignKey(e => e.PlanId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Functionality)
+                      .WithMany(f => f.PlanFunctionalities)
+                      .HasForeignKey(e => e.FunctionalityId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configuración para Functionality
+            modelBuilder.Entity<Functionality>(entity =>
+            {
+                entity.ToTable("functionality", schema: "public");
+                entity.HasKey(e => e.Id);
+
+                // Mapear Id correctamente a la columna "id"
+                entity.Property(e => e.Id)
+                      .HasColumnName("id")
+                      .IsRequired();
+
+                entity.Property(e => e.Name)
+                      .HasColumnName("name")
+                      .IsRequired()
+                      .HasMaxLength(255);
+
+                entity.Property(e => e.Description)
+                      .HasColumnName("description")
+                      .HasMaxLength(255);
+            });
+        }
+    }
 
             }
-      }
-}
+      

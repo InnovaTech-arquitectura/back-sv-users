@@ -31,7 +31,7 @@ public class PlanCuponController : ControllerBase
         _context = context;
         _utilities = utilities;
     }
- /* 
+ 
     // Obtener funcionalidades de un plan específico
     [HttpGet("{planId}/functionalities")]
     public async Task<IActionResult> GetFunctionalitiesByPlan(long planId)
@@ -155,7 +155,7 @@ public class PlanCuponController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
-*/
+
 }
 
 
