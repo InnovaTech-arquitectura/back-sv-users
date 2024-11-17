@@ -2,25 +2,25 @@
 using back_SV_users.Data;
 using back_SV_users;
 using System.Linq;
-using Models;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using Microsoft.AspNetCore.Authorization;
 using Custom;
 using DTO;
 
 [Route("api/[controller]")]
-[AllowAnonymous]
 [ApiController]
 public class UsersController : ControllerBase
 {
     private readonly DatabaseContext _context;
     private readonly Utilities _utilities;
+
     private readonly EmailService _emailService;
     private readonly ILogger<UsersController> _logger;
 
-    private static string? _recoveryCode;
+      private static string? _recoveryCode;
     private static string? _recoveryEmail;
+
+    // Clave secreta para el desencriptado (debe coincidir con la del frontend)
+    private static string SECRET_KEY = "mySecretKey12345";
 
     public UsersController(DatabaseContext context, Utilities utilities, EmailService emailService, ILogger<UsersController> logger)
     {
@@ -29,65 +29,23 @@ public class UsersController : ControllerBase
         _emailService = emailService;
         _logger = logger;
     }
-
-    [HttpPost]
-    [Route("Register")]
-    public async Task<IActionResult> Register([FromBody] UserDTO user)
-    {
-        if (user == null)
-        {
-            return BadRequest("User data is required.");
-        }
-
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == user.RoleName);
-        if (role == null)
-        {
-            return BadRequest("Role does not exist.");
-        }
-
-        var modelUser = new User
-        {
-            Id_card = user.Id_card,
-            Name = user.Name,
-            Email = user.Email,
-            Password = _utilities.ComputeSHA256Hash(user.Password), // Cambiado aquí
-            RoleId = role.Id
-        };
-
-        try
-        {
-            await _context.Users.AddAsync(modelUser);
-            await _context.SaveChangesAsync();
-            return Ok(new { isSuccess = true });
-        }
-        catch (DbUpdateException dbEx)
-        {
-            Console.WriteLine($"Database Update Error: {dbEx.InnerException?.Message}");
-            return StatusCode(500, $"Database Update Error: {dbEx.InnerException?.Message}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Internal server error: {ex.Message}");
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-
     [HttpPost]
     [Route("Login")]
     public async Task<IActionResult> Login([FromBody] LoginDTO user)
     {
-        _logger.LogInformation("Login attempt");
-        _logger.LogInformation($"User: {user.Email}");
-        _logger.LogInformation($"Password: {user.Password}");
         if (user == null)
         {
             return BadRequest("User data is required.");
         }
 
+        // Desencriptamos la contraseña usando XOR
+        string decryptedPassword = DecryptPassword(user.Password);
+
+        // Buscamos el usuario en la base de datos con el correo y la contraseña desencriptada
         var userFind = await _context.Users
             .Where(u =>
                 u.Email == user.Email &&
-                u.Password == _utilities.ComputeSHA256Hash(user.Password)
+                u.Password == _utilities.ComputeSHA256Hash(decryptedPassword) // Aquí se compara con la contraseña encriptada
             ).FirstOrDefaultAsync();
 
         if (userFind == null)
@@ -96,16 +54,31 @@ public class UsersController : ControllerBase
         }
         else
         {
+            // Generamos el JWT para el usuario encontrado
             var token = _utilities.GenerateJWT(userFind); 
             _logger.LogInformation($"User {userFind.Name} logged in.");
-            _logger.LogInformation($"role: {userFind.RoleId}");
-            _logger.LogInformation($"Token: {token}");
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token = token, userId = userFind.Id , role = userFind.RoleId});
         }
     }
 
-    // Los métodos restantes se mantienen igual excepto por la llamada de encriptación
-    // en el método `SetNewPassword`.
+    // Método para desencriptar la contraseña utilizando XOR
+    private string DecryptPassword(string encryptedPassword)
+    {
+        _logger.LogInformation($"Decrypting password:");
+        _logger.LogInformation($"Decrypting password:");
+        _logger.LogInformation($"Decrypting password: {encryptedPassword}");
+        // Primero, decodificamos la contraseña cifrada de Base64 a texto
+        string encrypted = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(encryptedPassword));
+        string decrypted = "";
+
+        // Desencriptamos la contraseña utilizando XOR con la clave secreta
+        for (int i = 0; i < encrypted.Length; i++)
+        {
+            decrypted += (char)(encrypted[i] ^ SECRET_KEY[i % SECRET_KEY.Length]);
+        }
+
+        return decrypted;
+    }
 
     [HttpPost("set-new-password")]
     public IActionResult SetNewPassword([FromBody] PasswordChangeDTO model)
